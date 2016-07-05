@@ -3,6 +3,8 @@ package com.example.tank.mygooogleeventeditor;
 import android.Manifest;
 import android.accounts.AccountManager;
 import android.app.Dialog;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -15,9 +17,9 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -34,8 +36,6 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.DateTime;
 import com.google.api.client.util.ExponentialBackOff;
 import com.google.api.services.calendar.CalendarScopes;
-import com.google.api.services.calendar.model.CalendarList;
-import com.google.api.services.calendar.model.CalendarListEntry;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.Events;
 
@@ -59,9 +59,7 @@ public class MyEventsActivity extends AppCompatActivity implements EasyPermissio
 
     private static final String PREF_ACCOUNT_NAME = "accountName";
     private static final String[] SCOPES = {CalendarScopes.CALENDAR};
-    private RecyclerView mMyEventsRecyclerView;
-    private LinearLayoutManager mMyEventsLayoutManager;
-    private MyEventsAdapter mMyEventsAdapter;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,7 +87,6 @@ public class MyEventsActivity extends AppCompatActivity implements EasyPermissio
         getResultsFromApi();
     }
 
-
     /**
      * Attempt to call the API, after verifying that all the preconditions are
      * satisfied. The preconditions are: Google Play Services installed, an
@@ -106,6 +103,7 @@ public class MyEventsActivity extends AppCompatActivity implements EasyPermissio
             //todo
 //            mOutputText.setText("No network connection available.");
         } else {
+            showProgressBar();
             new MakeRequestTask(mCredential).execute();
         }
     }
@@ -360,7 +358,7 @@ public class MyEventsActivity extends AppCompatActivity implements EasyPermissio
 
         @Override
         protected void onPreExecute() {
-            mProgress.show();
+//            showProgressBar();
         }
 
         @Override
@@ -401,17 +399,13 @@ public class MyEventsActivity extends AppCompatActivity implements EasyPermissio
         }
     }
 
+    private void showProgressBar() {
+        mProgress.show();
+    }
+
     private void displayEvents(List<Event> events) {
-        mMyEventsRecyclerView = (RecyclerView) findViewById(R.id.my_events_recycler_view);
-        // use this setting to improve performance if you know that changes
-        // in content do not change the layout size of the RecyclerView
-        mMyEventsRecyclerView.setHasFixedSize(true);
-        // use a linear layout manager
-        mMyEventsLayoutManager = new LinearLayoutManager(this);
-        mMyEventsRecyclerView.setLayoutManager(mMyEventsLayoutManager);
-        // specify an adapter (see also next example)
-        mMyEventsAdapter = new MyEventsAdapter(events, this);
-        mMyEventsRecyclerView.setAdapter(mMyEventsAdapter);
+        FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+        fragmentTransaction.add(R.id.my_events_fragment_holder, UserEventsFragment.newInstance(events)).commit();
     }
 
 
@@ -436,4 +430,23 @@ public class MyEventsActivity extends AppCompatActivity implements EasyPermissio
 
         return super.onOptionsItemSelected(item);
     }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        mProgress.dismiss(); // try this
+    }
+
+    @Override
+    public void onBackPressed(){
+        FragmentManager fm = getFragmentManager();
+        if (fm.getBackStackEntryCount() > 0) {
+            Log.i(TAG, "popping backstack");
+            fm.popBackStack();
+        } else {
+            Log.i(TAG, "nothing on backstack, calling super");
+            super.onBackPressed();
+        }
+    }
+
 }

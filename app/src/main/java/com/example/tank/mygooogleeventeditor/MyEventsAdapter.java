@@ -76,7 +76,10 @@ public class MyEventsAdapter extends RecyclerView.Adapter<MyEventsAdapter.ViewHo
             public void onClick(View view) {
                 //launch fragment, bundling event
                 FragmentTransaction fragmentTransaction = mParentActivity.getFragmentManager().beginTransaction();
-                fragmentTransaction.add(android.R.id.content, EventInfoFragment.newInstance(currentEvent)).commit();
+                fragmentTransaction.replace(R.id.my_events_fragment_holder, EventInfoFragment.newInstance(currentEvent));
+                fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+                fragmentTransaction.addToBackStack(null);
+                fragmentTransaction.commit();
             }
         });
 

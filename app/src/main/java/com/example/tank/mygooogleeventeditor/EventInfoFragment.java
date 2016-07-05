@@ -1,6 +1,9 @@
 package com.example.tank.mygooogleeventeditor;
 
+import android.app.Activity;
 import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -9,6 +12,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventAttendee;
 
@@ -44,6 +49,7 @@ public class EventInfoFragment extends Fragment {
     private TextView mEventLocationTextView;
     private TextView mEventAttendeesTextView;
     private TextView mEventDescriptionTextView;
+    private ImageView mEventLocationImageView;
 
 
     public static EventInfoFragment newInstance(Event event){
@@ -94,10 +100,23 @@ public class EventInfoFragment extends Fragment {
         mEventLocationTextView = (TextView) mEventInforFragmentView.findViewById(R.id.event_location_text_view);
         mEventAttendeesTextView = (TextView) mEventInforFragmentView.findViewById(R.id.event_attendees_text_view);
         mEventDescriptionTextView = (TextView) mEventInforFragmentView.findViewById(R.id.event_description_text_view);
+        getActivity().setTitle(mEventSummary);
 
         mEventTimeTextView.setText(Util.INSTANCE.buildEventStartEndTime(mEventStartTime, mEventEndTime));
         mEventLocationTextView.setText(mEventLocation);
         mEventAttendeesTextView.setText(Integer.toString(mEventAttendees.size()));
         mEventDescriptionTextView.setText(mEventDescription);
+
+        mEventLocationTextView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FragmentTransaction fragmentTransaction = getActivity().getFragmentManager().beginTransaction();
+                fragmentTransaction.replace(R.id.my_events_fragment_holder, EventLocationMapFragment.newInstance(mEventLocation));
+                fragmentTransaction.addToBackStack(null);
+                fragmentTransaction.commit();
+            }
+        });
+
     }
+
 }
